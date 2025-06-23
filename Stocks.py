@@ -51,9 +51,13 @@ def get_data_stock(ticker=""):
     start_date = end_date - timedelta(days=365)
 
     # Download stock data
-    data_temp = yf.download(ticker, start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"))
-    print("Sample data row:\n", data_temp.sample())
-    return  data_temp
+    try:
+        data_temp = yf.download(ticker, start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"))
+        print("Sample data row:\n", data_temp.sample())
+        return  data_temp
+    except ValueError:
+        error_code_from_download=1
+        print("Please select another stock!")
 
 def create_data_output(data_stock):
     # Create new DataFrame with comparison
