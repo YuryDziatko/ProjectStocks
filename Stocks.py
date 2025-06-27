@@ -37,23 +37,39 @@
 import yfinance as yf
 from datetime import datetime, timedelta
 import pandas as pd
-def get_data_stock(ticker=""):
-    # Load stock list
-
-    df_stocks = pd.read_json('Stocks_name.json')
-
-    # Pick random ticker
-    ticker = df_stocks["symbol"].sample().iloc[0]
-    print("Randomly chosen ticker:", ticker)
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import StandardScaler
+def get_data_stock(ticker):
+    # # Load stock list
+    #
+    # df_stocks = pd.read_json('Stocks_name.json')
+    #
+    # # Pick random ticker
+    # ticker = df_stocks["symbol"].sample().iloc[0]
+    # print("Randomly chosen ticker:", ticker)
 
     # Set date range
     end_date = datetime.today()
     start_date = end_date - timedelta(days=365)
 
     # Download stock data
+    try:
+        data_temp = yf.download(ticker, start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"))
+        print("Sample data row:\n", data_temp.sample())
+        return  data_temp
+    except ValueError:
+        error_code_from_download=1
+        print("Please select another stock!")
+
+def get_stock_from_yesterday(ticker):
+    end_date = datetime.today()
+    start_date = end_date - timedelta(days=7)
     data_temp = yf.download(ticker, start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"))
-    print("Sample data row:\n", data_temp.sample())
-    return  data_temp
+    imputer = SimpleImputer(strategy='mean')
+    data_temp_imputer = pd.DataFrame(imputer.fit_transform(data_temp), columns=data_temp.columns)
+    scaler = StandardScaler()
+    return scaler.fit_transform(data_temp_imputer)
+
 
 def create_data_output(data_stock):
     # Create new DataFrame with comparison
@@ -65,5 +81,5 @@ def create_data_output(data_stock):
     print("Sample from Increase_temp:\n", increase_temp.sample())
     return increase_temp["Next_Open_gt_Close"]
 
-data_yury=get_data_stock()
-create_data_output(data_yury)
+# data_yury=get_data_stock(ticker)
+# create_data_output(data_yury)

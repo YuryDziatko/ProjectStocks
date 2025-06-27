@@ -6,9 +6,9 @@ from sklearn.model_selection import train_test_split
 
 import Stocks
 
-def get_train_test_data():
+def get_train_test_data(ticker):
     # Load dataset
-    df_clf = Stocks.get_data_stock()
+    df_clf = Stocks.get_data_stock(ticker)
 
     # Check for missing values
     print("Missing values per column:")
@@ -51,7 +51,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 
-def evaluate_classification_models(x_train, x_test, y_train, y_test):
+def evaluate_classification_models(x_train, x_test, y_train, y_test , ticker):
     models = {
         "LinearRegression": LogisticRegression(),
         "Ridge": DecisionTreeClassifier(),
@@ -67,11 +67,22 @@ def evaluate_classification_models(x_train, x_test, y_train, y_test):
         y_pred_model = model.predict(x_test)
         results_reg[name] = evaluate_classification(y_test, y_pred_model)
 
-    return results_reg
+    # best_model = max(results_reg.items(), key=lambda item: item[1]["F1-score"])
+    best_model_name, best_result = max(results_reg.items(), key=lambda x: x[1]["F1-score"])
+
+    data_from_yesterday= Stocks.get_stock_from_yesterday(ticker)
+    best_model = models[best_model_name]
+    prediction = best_model.predict(data_from_yesterday)
+    # print(f"\nPrediction for yesterday's data: {prediction[0]}")
 
 
-X_train, X_test, Y_train, Y_test = get_train_test_data()
-results = evaluate_classification_models(X_train, X_test, Y_train, Y_test)
-for name, evaluate in results.items():
-    print(f"Model: {name}")
-    print(f"evaluate: {evaluate}")
+    #need to make sure that is predict new day
+
+    return prediction[-1]
+
+
+# X_train, X_test, Y_train, Y_test = get_train_test_data()
+# results = evaluate_classification_models(X_train, X_test, Y_train, Y_test)
+# for name, evaluate in results.items():
+#     print(f"Model: {name}")
+#     print(f"evaluate: {evaluate}")
