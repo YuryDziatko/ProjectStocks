@@ -11,8 +11,8 @@ def get_train_test_data(ticker):
     df_clf = Stocks.get_data_stock(ticker)
 
     # Check for missing values
-    print("Missing values per column:")
-    print(df_clf.isnull().sum())
+    # print("Missing values per column:")
+    # print(df_clf.isnull().sum())
 
     # Impute numerical features if needed
     imputer = SimpleImputer(strategy='mean')

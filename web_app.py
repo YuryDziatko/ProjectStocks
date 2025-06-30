@@ -15,25 +15,25 @@ def show_form(request: Request):
     tickers = df_stocks["symbol"].tolist()
     return templates.TemplateResponse("index.html", {"request": request, "tickers": tickers})
 
-@app.post("/predict", response_class=HTMLResponse)
-def predict(request: Request, ticker: str = Form(...)):
-    try:
-        X_train, X_test, Y_train, Y_test = get_train_test_data(ticker)
-        result = evaluate_classification_models(X_train, X_test, Y_train, Y_test, ticker)
-        df_stocks = pd.read_json('Stocks_name.json')
-        tickers = df_stocks["symbol"].tolist()
-        return templates.TemplateResponse("index.html", {
-            "request": request,
-            "tickers": tickers,
-            "selected_ticker": ticker,
-            "result": result
-        })
-    except ValueError:
-        return templates.TemplateResponse("index.html", {
-            "request": request,
-            "tickers": [],
-            "result": "Please select another stock."
-        })
+# @app.post("/predict", response_class=HTMLResponse)
+# def predict(request: Request, ticker: str = Form(...)):
+#     try:
+#         X_train, X_test, Y_train, Y_test = get_train_test_data(ticker)
+#         result = evaluate_classification_models(X_train, X_test, Y_train, Y_test, ticker)
+#         df_stocks = pd.read_json('Stocks_name.json')
+#         tickers = df_stocks["symbol"].tolist()
+#         return templates.TemplateResponse("index.html", {
+#             "request": request,
+#             "tickers": tickers,
+#             "selected_ticker": ticker,
+#             "result": result
+#         })
+#     except ValueError:
+#         return templates.TemplateResponse("index.html", {
+#             "request": request,
+#             "tickers": [],
+#             "result": "Please select another stock."
+#         })
 
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
@@ -49,7 +49,7 @@ def api_predict(ticker: str = Form(...)):
         else:
             output_t = f"Stock {ticker} will not increase tomorrow"
 
-        return output_t
+        return JSONResponse(content={"success": True, "message": output_t})
 
     except Exception as e:
-        return "Try another Stock"
+        return JSONResponse(content={"success": False, "message": "Try another stock"})

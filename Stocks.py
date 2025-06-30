@@ -55,11 +55,11 @@ def get_data_stock(ticker):
     # Download stock data
     try:
         data_temp = yf.download(ticker, start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"))
-        print("Sample data row:\n", data_temp.sample())
+        # print("Sample data row:\n", data_temp.sample())
         return  data_temp
     except ValueError:
         error_code_from_download=1
-        print("Please select another stock!")
+        # print("Please select another stock!")
 
 def get_stock_from_yesterday(ticker):
     end_date = datetime.today()
@@ -78,7 +78,7 @@ def create_data_output(data_stock):
     increase_temp['Next_Open'] = data_stock['Open'].shift(-1)
     increase_temp['Next_Open_gt_Close'] = increase_temp['Next_Open'] > increase_temp['Close']
 
-    print("Sample from Increase_temp:\n", increase_temp.sample())
+    # print("Sample from Increase_temp:\n", increase_temp.sample())
     return increase_temp["Next_Open_gt_Close"]
 
 # data_yury=get_data_stock(ticker)
