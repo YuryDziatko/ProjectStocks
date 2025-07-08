@@ -93,62 +93,110 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Stock Viewer</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      width: 100%;
-      font-family: sans-serif;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Prediction App</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
 
-    .container {
-      display: flex;
-      flex-direction: column;
-      height: 100vh; /* full screen height */
-      padding: 10px;
-      box-sizing: border-box;
-    }
+        body {
+            margin: 0;
+            padding: 1rem;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: #f0f4f8;
+        }
 
-    canvas {
-      flex: 1;
-      width: 100%;
-      height: 100%;
-    }
+        h1, h2 {
+            text-align: center;
+            font-size: 6vw;
+            margin-top: 0;
+        }
 
-    h1 {
-      font-size: 5vw; /* scales with screen size */
-      text-align: center;
-    }
-  </style>
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-width: 400px;
+            width: 100%;
+            margin: auto;
+        }
+
+        select, button {
+            padding: 1rem;
+            font-size: 1rem;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #result-output {
+            white-space: pre-wrap;
+            padding: 1rem;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-top: 1rem;
+            max-width: 600px;
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Stock Chart</h1>
-    <canvas id="chart"></canvas>
-  </div>
+    <h1>Stock Prediction</h1>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-    const ctx = document.getElementById('chart').getContext('2d');
-    new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
-        datasets: [{
-          label: 'Price',
-          data: [120, 125, 123, 127, 130],
-          borderColor: 'blue',
-          borderWidth: 2
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false
-      }
-    });
-  </script>
+    <form id="predict-form">
+        <label for="ticker">Choose a stock:</label>
+        <select name="ticker" id="ticker">
+            {% for ticker in tickers %}
+                <option value="{{ ticker }}">{{ ticker }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Predict</button>
+    </form>
+
+    <h2 id="result-title" style="display:none;">Prediction Result:</h2>
+    <pre id="result-output"></pre>
+
+    <script>
+        document.getElementById("predict-form").addEventListener("submit", async function(event) {
+            event.preventDefault(); // prevent page reload
+
+            const formData = new FormData(this);
+            const response = await fetch("/api/predict", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await response.json();
+
+            const title = document.getElementById("result-title");
+            const output = document.getElementById("result-output");
+
+            title.style.display = "block";
+
+            if (data.success) {
+                output.textContent = data.message;
+            } else {
+                output.textContent = "Error: " + data.message;
+            }
+        });
+    </script>
 </body>
 </html>
