@@ -39,27 +39,50 @@ from datetime import datetime, timedelta
 import pandas as pd
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler
-def get_data_stock(ticker):
-    # # Load stock list
-    #
-    # df_stocks = pd.read_json('Stocks_name.json')
-    #
-    # # Pick random ticker
-    # ticker = df_stocks["symbol"].sample().iloc[0]
-    # print("Randomly chosen ticker:", ticker)
 
-    # Set date range
+def download_and_save_indices(json_path="index_data.json"):
+    tickers = ['^IXIC', '^GSPC', '^DJI']
+    today = datetime.today()
+    start_date = today - timedelta(days=365)
+
+    data_frames = []
+    for ticker in tickers:
+        df = yf.download(ticker, start=start_date, end=today + timedelta(days=1))[['Close']]
+        df.columns = [ticker]
+        data_frames.append(df)
+
+    merged_df = pd.concat(data_frames, axis=1)
+    merged_df.index.name = "Date"
+
+    merged_df.to_json(json_path, orient="index", date_format="iso")
+    print(f"Index data saved to {json_path}")
+
+    # Return merged_df **with Date index** to allow proper alignment later
+    return merged_df
+
+# Usage
+
+
+
+
+def get_data_stock(ticker, MLP=False):
     end_date = datetime.today()
     start_date = end_date - timedelta(days=365)
 
-    # Download stock data
     try:
         data_temp = yf.download(ticker, start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"))
-        # print("Sample data row:\n", data_temp.sample())
-        return  data_temp
-    except ValueError:
-        error_code_from_download=1
-        # print("Please select another stock!")
+
+        if MLP:
+            indices_df = download_and_save_indices()
+            # Combine on Date index, keep all rows from data_temp
+            data_temp_for_MLP = pd.concat([data_temp, indices_df], axis=1)
+            return data_temp_for_MLP
+        else:
+            return data_temp
+    except Exception as e:
+        print(f"Error downloading data: {e}")
+        return None
+
 
 def get_stock_from_yesterday(ticker):
     end_date = datetime.today()
