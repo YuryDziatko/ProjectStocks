@@ -40,48 +40,122 @@ import pandas as pd
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler
 
-def download_and_save_indices(json_path="index_data.json"):
-    tickers = ['^IXIC', '^GSPC', '^DJI']
-    today = datetime.today()
-    start_date = today - timedelta(days=365)
-
-    data_frames = []
-    for ticker in tickers:
-        df = yf.download(ticker, start=start_date, end=today + timedelta(days=1))[['Close']]
-        df.columns = [ticker]
-        data_frames.append(df)
-
-    merged_df = pd.concat(data_frames, axis=1)
-    merged_df.index.name = "Date"
-
-    merged_df.to_json(json_path, orient="index", date_format="iso")
-    print(f"Index data saved to {json_path}")
-
-    # Return merged_df **with Date index** to allow proper alignment later
-    return merged_df
+# def download_and_save_indices(json_path="index_data.json"):
+#     tickers = ['^IXIC', '^GSPC', '^DJI']
+#     today = datetime.today()
+#     start_date = today - timedelta(days=365)
+#
+#     data_frames = []
+#     for ticker in tickers:
+#         df = yf.download(ticker, start=start_date, end=today + timedelta(days=1))[['Close']]
+#         df.columns = [ticker]
+#         data_frames.append(df)
+#
+#     merged_df = pd.concat(data_frames, axis=1)
+#     merged_df.index.name = "Date"
+#
+#     merged_df.to_json(json_path, orient="index", date_format="iso")
+#     print(f"Index data saved to {json_path}")
+#
+#     # Return merged_df **with Date index** to allow proper alignment later
+#     return merged_df
 
 # Usage
 
 
 
 
-def get_data_stock(ticker, MLP=False):
-    end_date = datetime.today()
-    start_date = end_date - timedelta(days=365)
+# def get_data_stock(ticker, MLP=False):
+#     end_date = datetime.today()
+#     start_date = end_date - timedelta(days=365)
+#
+#     try:
+#         data_temp = yf.download(ticker, start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"))
+#
+#         if MLP:
+#
+#             indices_df = download_and_save_indices()
+#
+#             # Flatten multi-level columns if any in indices_df
+#             if isinstance(indices_df.columns, pd.MultiIndex):
+#                 indices_df.columns = ['_'.join(map(str, col)).strip() for col in indices_df.columns.values]
+#
+#             # Combine on Date index, keep all rows from data_temp
+#             data_temp_for_MLP = pd.concat([data_temp, indices_df], axis=1)
+#
+#             # **Ensure all columns are strings after concat**
+#             data_temp_for_MLP.columns = data_temp_for_MLP.columns.astype(str)
+#
+#             return data_temp_for_MLP
+#         else:
+#             return data_temp
+#     except Exception as e:
+#         print(f"Error downloading data: {e}")
+#         return None
+def download_indices(num_days: int = 300) -> pd.DataFrame:
+    """
+    Return a dataframe containing the last `num_days` rows of the
+    NASDAQ (^IXIC), S&P‑500 (^GSPC) and Dow Jones (^DJI) closing values.
+    Columns are renamed to their ticker symbols.
+    """
+    end = datetime.today()
+    # fetch twice the requested span to ensure we keep delisted / holiday gaps
+    start = end - timedelta(days=num_days * 2)
 
-    try:
-        data_temp = yf.download(ticker, start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"))
+    tickers = ['^IXIC', '^GSPC', '^DJI']
+    dfs = []
 
-        if MLP:
-            indices_df = download_and_save_indices()
-            # Combine on Date index, keep all rows from data_temp
-            data_temp_for_MLP = pd.concat([data_temp, indices_df], axis=1)
-            return data_temp_for_MLP
-        else:
-            return data_temp
-    except Exception as e:
-        print(f"Error downloading data: {e}")
-        return None
+    for t in tickers:
+        df = yf.download(t, start=start, end=end + timedelta(days=1))[['Close']]
+        df.columns = [t]                       #  ->  ^IXIC, ^GSPC, ^DJI
+        dfs.append(df)
+
+    idx_df = pd.concat(dfs, axis=1).tail(num_days)
+    idx_df.index.name = "Date"
+    return idx_df
+
+
+# ---------------------------------------------------------------------
+# 2.  Stock‑data + label generator
+# ---------------------------------------------------------------------
+def get_stock_data(
+    ticker: str,
+    num_days: int = 300,
+    merge_indices: bool = True
+):
+    end = datetime.today()
+    start = end - timedelta(days=num_days * 2)
+
+    # 1 ──────────────────────────────────────────────────────────
+    raw = yf.download(ticker, start=start, end=end + timedelta(days=1))
+
+    # keep only what we need and rename once
+    raw = (raw[['Open', 'Close']]
+           .rename(columns={'Open': 'open_t', 'Close': 'close_t'})
+           .tail(num_days)
+           .copy())
+
+    raw = raw.loc[:, ~raw.columns.duplicated(keep='first')]  # ⟵ NEW
+
+    raw['label'] = (raw['open_t'].shift(-1) > raw['close_t']).astype(int)
+    raw = raw.iloc[:-1]  # drop last row (no next_open)
+
+    # 3 ──────────────────────────────────────────────────────────
+    if merge_indices:
+        idx = download_indices(num_days)           # ^IXIC, ^GSPC, ^DJI
+        idx = idx.reindex(raw.index)               # perfectly align dates
+        raw = pd.concat([raw, idx], axis=1)
+
+    # 4 ──────────────────────────────────────────────────────────
+    y = raw.pop('label')
+    raw.drop(columns='next_open', inplace=True)
+
+    # example preprocessing
+    imputed  = SimpleImputer(strategy='mean').fit_transform(raw)
+    X_scaled = StandardScaler().fit_transform(imputed)
+    X        = pd.DataFrame(X_scaled, index=raw.index, columns=raw.columns)
+
+    return X, y
 
 
 def get_stock_from_yesterday(ticker):

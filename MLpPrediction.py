@@ -90,13 +90,13 @@ def evaluate_classification(y_true, y_pred):
         "Recall": recall,
         "F1-score": f1
     }
-def create_model_mlp(input, first_layer, second_layer, output):
+def create_model_mlp(input_dim, first_layer, second_layer, output):
     model_mlp= models.Sequential([
-        layers.Input(shape=(input,)),
+        layers.Input(shape=(input_dim,)),
         layers.Dense(first_layer, activation="relu"),
-        layers.Dropout(0.3),
-        layers.Dense(second_layer, activation="relu"),
         layers.Dropout(0.2),
+        layers.Dense(second_layer, activation="relu"),
+        layers.Dropout(0.1),
         layers.Dense(output, activation="softmax")
     ])
 
@@ -106,7 +106,7 @@ def create_model_mlp(input, first_layer, second_layer, output):
 def evaluate_mlp_models(x_train, x_test, y_train, y_test):
     # Determine number of classes dynamically
     num_classes = len(np.unique(y_train))
-    model = create_model_mlp(x_train.shape[1],266, 128, num_classes)
+    model = create_model_mlp(x_train.shape[1],32, 16, num_classes)
 
     # model = models.Sequential([
     #     layers.Input(shape=(x_train.shape[1],)),
@@ -138,7 +138,7 @@ def evaluate_mlp_models(x_train, x_test, y_train, y_test):
 
 def get_train_test_data_for_MLP(ticker):
     # Load dataset
-    df_clf = Stocks.get_data_stock(ticker, MLP=True)
+    df_clf , y_clf= Stocks.get_stock_data(ticker)
 
     # Check for missing values
     # print("Missing values per column:")
@@ -148,9 +148,10 @@ def get_train_test_data_for_MLP(ticker):
     imputer = SimpleImputer(strategy='mean')
     X_clf = pd.DataFrame(imputer.fit_transform(df_clf), columns=df_clf.columns)
 
+
     # Split features and target
 
-    y_clf = Stocks.create_data_output(X_clf)
+    # y_clf = Stocks.create_data_output(X_clf)
 
     # Drop rows where y_clf is NaN (due to shift)
     mask = ~y_clf.isna()
@@ -177,7 +178,8 @@ if __name__ == "__main__":
 
     # Pick random ticker
     ticker = df_stocks["symbol"].sample().iloc[0]
-    X_train, X_test, Y_train, Y_test = get_train_test_data(ticker)
+    X_train, X_test, Y_train, Y_test = get_train_test_data_for_MLP(ticker)
+
     results = evaluate_mlp_models(X_train, X_test, Y_train, Y_test)
 
     print("\nFinal Evaluation Metrics:")
