@@ -138,7 +138,8 @@ def evaluate_mlp_models(x_train, x_test, y_train, y_test):
 
 def get_train_test_data_for_MLP(ticker):
     # Load dataset
-    df_clf , y_clf= Stocks.get_stock_data(ticker)
+    df_clf = Stocks.get_data_stock(ticker, MLP=True)
+    df_clf=df_clf.iloc[1:]
 
     # Check for missing values
     # print("Missing values per column:")
@@ -151,12 +152,13 @@ def get_train_test_data_for_MLP(ticker):
 
     # Split features and target
 
-    # y_clf = Stocks.create_data_output(X_clf)
+    y_clf = Stocks.create_data_output(X_clf)
+    # y_clf = y_clf.iloc[1:]
 
-    # Drop rows where y_clf is NaN (due to shift)
-    mask = ~y_clf.isna()
-    X_clf = X_clf[mask]
-    y_clf = y_clf[mask]
+    # # Drop rows where y_clf is NaN (due to shift)
+    # mask = ~y_clf.isna()
+    # X_clf = X_clf[mask]
+    # y_clf = y_clf[mask]
 
     # Standardize the features
     scaler = StandardScaler()
