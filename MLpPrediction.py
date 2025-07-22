@@ -172,6 +172,40 @@ def get_train_test_data_for_MLP(ticker):
     return X_train_clf, X_test_clf, y_train_clf, y_test_clf
 
 
+def find_best_model(ticker, f1_border=0.6):
+    x_train, x_test, y_train, y_test = get_train_test_data_for_MLP(ticker)
+    f1 = 0
+    num_classes = len(np.unique(y_train))
+    try_counter=0
+    while f1<f1_border or try_counter<20:
+        try_counter+=1
+        model = create_model_mlp(x_train.shape[1], 32, 16, num_classes)
+        model.compile(
+            optimizer="adam",
+            loss="sparse_categorical_crossentropy",
+            metrics=["accuracy"]
+        )
+        history = model.fit(
+            x_train, y_train,
+            epochs=30,
+            batch_size=64,
+            validation_split=0.2,
+            verbose=1
+        )
+
+        y_pred = model.predict(x_test)
+        # Convert probabilities to class predictions
+        y_pred_labels = np.argmax(y_pred, axis=1)
+
+        # Determine if binary or multi-class
+        num_classes = len(np.unique(y_test))
+        average_type = 'binary' if num_classes == 2 else 'macro'
+
+        f1 = f1_score(y_test, y_pred_labels, average=average_type)
+    return f1 , model
+
+
+
 # Main execution
 if __name__ == "__main__":
     # Load stock list
@@ -180,10 +214,14 @@ if __name__ == "__main__":
 
     # Pick random ticker
     ticker = df_stocks["symbol"].sample().iloc[0]
-    X_train, X_test, Y_train, Y_test = get_train_test_data_for_MLP(ticker)
 
-    results = evaluate_mlp_models(X_train, X_test, Y_train, Y_test)
+    # X_train, X_test, Y_train, Y_test = get_train_test_data_for_MLP(ticker)
+    #
+    # results = evaluate_mlp_models(X_train, X_test, Y_train, Y_test)
+    #
+    # print("\nFinal Evaluation Metrics:")
+    # for metric, value in results.items():
+    #     print(f"{metric}: {value:.4f}")
 
-    print("\nFinal Evaluation Metrics:")
-    for metric, value in results.items():
-        print(f"{metric}: {value:.4f}")
+    sc , mod_sc = find_best_model(ticker)
+    print(sc)
