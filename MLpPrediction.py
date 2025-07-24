@@ -1,3 +1,6 @@
+import os
+from datetime import datetime
+
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -177,7 +180,7 @@ def find_best_model(ticker, f1_border=0.6):
     f1 = 0
     num_classes = len(np.unique(y_train))
     try_counter=0
-    while f1<f1_border or try_counter<20:
+    while f1<f1_border and try_counter<5:
         try_counter+=1
         model = create_model_mlp(x_train.shape[1], 32, 16, num_classes)
         model.compile(
@@ -202,6 +205,7 @@ def find_best_model(ticker, f1_border=0.6):
         average_type = 'binary' if num_classes == 2 else 'macro'
 
         f1 = f1_score(y_test, y_pred_labels, average=average_type)
+        print(f"Score {f1}  model n:{try_counter}")
     return f1 , model
 
 
@@ -223,5 +227,25 @@ if __name__ == "__main__":
     # for metric, value in results.items():
     #     print(f"{metric}: {value:.4f}")
 
+    json_path = "saved_model/model_data.json"
+    
+
+
     sc , mod_sc = find_best_model(ticker)
+    # Save model
+    model_filename = f"model_for{ticker}.keras"
+    mod_sc.save(os.path.join("saved_model", model_filename))
+
+    # Create or load existing model metadata
+    if os.path.exists(json_path):
+        model_data = pd.read_json(json_path, orient="index")
+    else:
+        model_data = pd.DataFrame(columns=["filename", "date", "f1_score"])
+
+    # Update or insert new model record
+    model_data.loc[ticker] = [model_filename, datetime.today().isoformat(), sc]
+
+    # Save updated metadata
+    model_data.to_json(json_path, orient="index", date_format="iso")
+
     print(sc)
