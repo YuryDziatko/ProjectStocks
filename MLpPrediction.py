@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+import random
 
 import numpy as np
 import pandas as pd
@@ -140,6 +141,43 @@ def evaluate_mlp_models(x_train, x_test, y_train, y_test):
     return evaluate_classification(y_test, y_pred)
 
 def get_train_test_data_for_MLP(ticker):
+    # df_clf = Stocks.get_data_stock(ticker, MLP=True)
+    #
+    # if df_clf is None or df_clf.empty:
+    #     raise ValueError(f"No data returned for ticker {ticker}")
+    #
+    # df_clf = df_clf.iloc[1:]
+    #
+    # if df_clf.isnull().all().any():
+    #     raise ValueError(f"All columns contain NaNs for ticker {ticker}")
+    #
+    # imputer = SimpleImputer(strategy='mean')
+    # X_clf = pd.DataFrame(imputer.fit_transform(df_clf), columns=df_clf.columns)
+    #
+    # y_clf = Stocks.create_data_output(X_clf)
+    #
+    # if len(X_clf) != len(y_clf):
+    #     raise ValueError("Feature and target lengths do not match")
+    #
+    # # Remove rows with NaNs in target
+    # valid_mask = ~y_clf.isna()
+    # X_clf = X_clf[valid_mask]
+    # y_clf = y_clf[valid_mask]
+    #
+    # if len(np.unique(y_clf)) < 2:
+    #     raise ValueError(f"Only one class found in target for {ticker}. Classification requires at least two classes.")
+    #
+    # scaler = StandardScaler()
+    # X_clf_scaled = scaler.fit_transform(X_clf)
+    #
+    # X_train_clf, X_test_clf, y_train_clf, y_test_clf = train_test_split(
+    #     X_clf_scaled, y_clf, test_size=0.2, random_state=42
+    # )
+    #
+    # print("Classification data prepared. Shape:", X_train_clf.shape)
+    # return X_train_clf, X_test_clf, y_train_clf, y_test_clf
+
+
     # Load dataset
     df_clf = Stocks.get_data_stock(ticker, MLP=True)
     df_clf=df_clf.iloc[1:]
@@ -176,13 +214,20 @@ def get_train_test_data_for_MLP(ticker):
 
 
 def find_best_model(ticker, f1_border=0.6):
-    x_train, x_test, y_train, y_test = get_train_test_data_for_MLP(ticker)
+    try:
+        x_train, x_test, y_train, y_test = get_train_test_data_for_MLP(ticker)
+    except Exception as e:
+        print(f"Data error for {ticker}: {e}")
+        return 0, None
     f1 = 0
     num_classes = len(np.unique(y_train))
     try_counter=0
     while f1<f1_border and try_counter<5:
         try_counter+=1
-        model = create_model_mlp(x_train.shape[1], 32, 16, num_classes)
+        layer1_units = random.randint(10, 64)
+        layer2_units = random.randint(8, layer1_units)  # smaller than or equal to layer 1
+
+        model = create_model_mlp(x_train.shape[1], layer1_units, layer2_units, num_classes)
         model.compile(
             optimizer="adam",
             loss="sparse_categorical_crossentropy",
@@ -228,7 +273,7 @@ if __name__ == "__main__":
     #     print(f"{metric}: {value:.4f}")
 
     json_path = "saved_model/model_data.json"
-    
+
 
 
     sc , mod_sc = find_best_model(ticker)
