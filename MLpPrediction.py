@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 import random
 
 import numpy as np
@@ -7,6 +7,7 @@ import pandas as pd
 import tensorflow as tf
 from keras import layers, models
 from keras.metrics import F1Score, Accuracy, Precision, Recall
+from keras.src.saving import load_model
 from sklearn.impute import SimpleImputer
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from keras.utils import to_categorical
@@ -15,6 +16,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 import Stocks
+
+MODEL_DIR = "saved_model"
+MODEL_META_PATH = os.path.join(MODEL_DIR, "model_data.json")
 from ModelPrediction import get_train_test_data
 
 # def evaluate_classification(y_true, y_pred):
@@ -252,6 +256,41 @@ def find_best_model(ticker, f1_border=0.6):
         f1 = f1_score(y_test, y_pred_labels, average=average_type)
         print(f"Score {f1}  model n:{try_counter}")
     return f1 , model
+
+
+
+def get_or_create_model(ticker, f1_border=0.6):
+    # Load metadata or create empty
+    if os.path.exists(MODEL_META_PATH):
+        model_data = pd.read_json(MODEL_META_PATH, orient="index")
+    else:
+        model_data = pd.DataFrame(columns=["filename", "date", "f1_score"])
+
+    today = datetime.today()
+
+    if ticker in model_data.index:
+        last_trained = pd.to_datetime(model_data.loc[ticker, "date"])
+        model_filename = model_data.loc[ticker, "filename"]
+        model_path = os.path.join(MODEL_DIR, model_filename)
+
+        # If model is fresh and file exists, load and return it
+        if today - last_trained < timedelta(days=30) and os.path.exists(model_path):
+            return load_model(model_path)
+
+    # Otherwise: retrain
+    try:
+        f1, model = find_best_model(ticker, f1_border=f1_border)
+        if model:
+            model_filename = f"model_for{ticker}.keras"
+            model_path = os.path.join(MODEL_DIR, model_filename)
+            model.save(model_path)
+
+            # Update metadata
+            model_data.loc[ticker] = [model_filename, today.isoformat(), f1]
+            model_data.to_json(MODEL_META_PATH, orient="index", date_format="iso")
+            return model
+    except Exception as e:
+        return None
 
 
 

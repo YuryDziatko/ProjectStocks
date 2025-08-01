@@ -153,14 +153,53 @@ def get_data_stock(ticker, MLP=False):
 #     return X, y
 
 
+# def get_stock_from_yesterday(ticker):
+#     end_date = datetime.today()
+#     start_date = end_date - timedelta(days=7)
+#     data_temp = yf.download(ticker, start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"))
+#     imputer = SimpleImputer(strategy='mean')
+#     data_temp_imputer = pd.DataFrame(imputer.fit_transform(data_temp), columns=data_temp.columns)
+#     scaler = StandardScaler()
+#     return scaler.fit_transform(data_temp_imputer)
+
 def get_stock_from_yesterday(ticker):
-    end_date = datetime.today()
-    start_date = end_date - timedelta(days=7)
-    data_temp = yf.download(ticker, start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"))
-    imputer = SimpleImputer(strategy='mean')
-    data_temp_imputer = pd.DataFrame(imputer.fit_transform(data_temp), columns=data_temp.columns)
-    scaler = StandardScaler()
-    return scaler.fit_transform(data_temp_imputer)
+    try:
+        end_date = datetime.today()
+        start_date = end_date - timedelta(days=7)
+
+        # Download stock data
+        stock_df = yf.download(ticker, start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"))
+        if stock_df.empty:
+            raise ValueError(f"No stock data returned for {ticker}")
+
+        # Download index data for the same date range
+        index_tickers = ['^IXIC', '^GSPC', '^DJI']
+        index_frames = []
+        for index_ticker in index_tickers:
+            idx_df = yf.download(index_ticker, start=start_date, end=end_date + timedelta(days=1))[['Close']]
+            idx_df.columns = [index_ticker]
+            index_frames.append(idx_df)
+
+        # Combine indexes into one DataFrame
+        indices_df = pd.concat(index_frames, axis=1)
+
+        # Merge stock and indices on date
+        stock_df.columns = stock_df.columns.get_level_values(0)  # flatten in case of multi-index
+        merged_df = stock_df.merge(indices_df, left_index=True, right_index=True)
+
+        # Impute missing values
+        imputer = SimpleImputer(strategy='mean')
+        imputed_df = pd.DataFrame(imputer.fit_transform(merged_df), columns=merged_df.columns)
+
+        # Standardize
+        scaler = StandardScaler()
+        scaled_array = scaler.fit_transform(imputed_df)
+
+        return scaled_array
+
+    except Exception as e:
+        print(f"Error in get_stock_from_yesterday({ticker}): {e}")
+        return None
 
 
 def create_data_output(data_stock):
