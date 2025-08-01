@@ -41,7 +41,7 @@ def api_predict(ticker: str = Form(...)):
     try:
         model = get_or_create_model(ticker)
         if not model:
-            return JSONResponse(content={"success": False, "message": "Failed to load or create model."})
+            return JSONResponse(content={"success": False, "message": f"Failed to load or create model for {ticker}."})
 
         # Prepare yesterday’s data
         data_from_yesterday = Stocks.get_stock_from_yesterday(ticker)
