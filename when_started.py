@@ -29,7 +29,7 @@ def get_stocks_name(json_path="Stocks_name.json"):
 
 
 
-def download_and_save_indexes_to_json(json_path="index_data.json"):
+def download_and_save_indexes_to_json(json_path="index_data.json",days_index=365):
     index_tickers = {
         "NASDAQ": "^IXIC",
         "S&P500": "^GSPC",
@@ -37,7 +37,7 @@ def download_and_save_indexes_to_json(json_path="index_data.json"):
     }
 
     end_date = datetime.today()
-    start_date = end_date - timedelta(days=365)
+    start_date = end_date - timedelta(days_index)
 
     data_frames = []
 
@@ -61,13 +61,17 @@ def download_and_save_indexes_to_json(json_path="index_data.json"):
         print("No index data was downloaded.")
         return
 
+
+
     # Merge all data on date
     merged_df = pd.concat(data_frames, axis=1)
     merged_df.index.name = "Date"
+    print(merged_df.shape)
 
     # Save to JSON (records by date)
     merged_df.to_json(json_path, orient="index", date_format="iso")
     print(f"Index data saved to {json_path}")
+    return merged_df
 
 get_stocks_name()
 download_and_save_indexes_to_json()

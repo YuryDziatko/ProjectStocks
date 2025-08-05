@@ -1,1 +1,1 @@
-{"GT":{"filename":"model_forGT.keras","date":"2025-07-24T12:36:19.435145","f1_score":0.4782608696}}
+{"GT":{"filename":"model_forGT.keras","date":"2025-07-24T12:36:19.435","f1_score":0.4782608696},"MEDP":{"filename":"model_forMEDP.keras","date":"2025-08-05T12:51:03.496","f1_score":0.6909090909},"APTV":{"filename":"model_forAPTV.keras","date":"2025-08-05T13:18:17.278","f1_score":0.6},"NL":{"filename":"model_forNL.keras","date":"2025-08-05T13:21:33.772434","f1_score":0.4736842105}}

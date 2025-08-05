@@ -40,43 +40,82 @@ import pandas as pd
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler
 
-def download_and_save_indices(json_path="index_data.json", days=365):
-    tickers = ['^IXIC', '^GSPC', '^DJI']
-    today = datetime.today()
-    start_date = today - timedelta(days)
-
-    data_frames = []
-    for ticker in tickers:
-        df = yf.download(ticker, start=start_date, end=today + timedelta(days=1))[['Close']]
-        df.columns = [ticker]
-        data_frames.append(df)
-
-    merged_df = pd.concat(data_frames, axis=1)
-    merged_df.index.name = "Date"
-
-    merged_df.to_json(json_path, orient="index", date_format="iso")
-    print(f"Index data saved to {json_path}")
-
-    # Return merged_df **with Date index** to allow proper alignment later
-    return merged_df
-
-# Usage
+from when_started import download_and_save_indexes_to_json
 
 
+# def download_and_save_indices(json_path="index_data.json", days=365):
+#     tickers = ['^IXIC', '^GSPC', '^DJI']
+#     today = datetime.today()
+#     start_date = today - timedelta(days)
+#
+#     data_frames = []
+#     for ticker in tickers:
+#         df = yf.download(ticker, start=start_date, end=today + timedelta(days=1))[['Close']]
+#         df.columns = [ticker]
+#         data_frames.append(df)
+#
+#     merged_df = pd.concat(data_frames, axis=1)
+#     merged_df.index.name = "Date"
+#
+#     merged_df.to_json(json_path, orient="index", date_format="iso")
+#     print(f"Index data saved to {json_path}")
+#
+#     # Return merged_df **with Date index** to allow proper alignment later
+#     return merged_df
+#
+# # Usage
 
 
-def get_data_stock(ticker, MLP=False, days=365):
+
+
+# def get_data_stock(ticker, MLP=False, days_stock=365):
+#     end_date = datetime.today()
+#     start_date = end_date - timedelta(days_stock)
+#
+#     try:
+#         data_temp = yf.download(ticker, start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"))
+#
+#         if MLP:
+#             print("get_data_stock MLP")
+#
+#             indices_df = download_and_save_indexes_to_json(json_path="index_data.json",days_index=days_stock)
+#             print("indices_df ",indices_df.shape)
+#             # data_temp.columns = data_temp.columns.get_level_values(0)
+#             # print("data_temp ",data_temp.shape)
+#             data_temp_for_MLP = data_temp.merge(indices_df, left_index=True, right_index=True)
+#             print("data_temp_for_MLP ",data_temp_for_MLP.shape)
+#
+#
+#
+#             return data_temp_for_MLP
+#         else:
+#             return data_temp
+#     except Exception as e:
+#         print(f"Error downloading data: {e}")
+#         return None
+
+def get_data_stock(ticker, MLP=False, days_stock=365):
     end_date = datetime.today()
-    start_date = end_date - timedelta(days)
+    start_date = end_date - timedelta(days_stock)
+    print(ticker)
 
     try:
         data_temp = yf.download(ticker, start=start_date.strftime("%Y-%m-%d"), end=end_date.strftime("%Y-%m-%d"))
+        print("data_temp ",data_temp.shape)
+        print("data_temp ",data_temp.sample())
 
         if MLP:
+            print("get_data_stock MLP")
 
-            indices_df = download_and_save_indices(days)
-            data_temp.columns = data_temp.columns.get_level_values(0)
+            indices_df = download_and_save_indexes_to_json(json_path="index_data.json",days_index=days_stock)
+            print("indices_df ",indices_df.shape)
+            print("indices_df ",indices_df.sample())
+            # data_temp.columns = data_temp.columns.get_level_values(0)
+            # print("data_temp ",data_temp.shape)
+            # print("data_temp ",data_temp.sample())
             data_temp_for_MLP = data_temp.merge(indices_df, left_index=True, right_index=True)
+            print("data_temp_for_MLP ",data_temp_for_MLP.shape)
+            print("data_temp_for_MLP ",data_temp_for_MLP.sample())
 
 
 
@@ -202,7 +241,7 @@ def get_data_stock(ticker, MLP=False, days=365):
 #         return None
 def get_stock_from_yesterday(ticker):
     # Load dataset
-    df_clf = get_data_stock(ticker, MLP=True, days=7)
+    df_clf = get_data_stock(ticker, MLP=True, days_stock=7)
     df_clf = df_clf.iloc[1:]
 
     # Check for missing values

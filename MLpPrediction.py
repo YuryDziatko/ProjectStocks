@@ -17,8 +17,8 @@ from sklearn.preprocessing import StandardScaler
 
 import Stocks
 
-MODEL_DIR = "saved_model"
-MODEL_META_PATH = os.path.join(MODEL_DIR, "model_data.json")
+# MODEL_DIR = "saved_model"
+# MODEL_META_PATH = os.path.join(MODEL_DIR, "model_data.json")
 from ModelPrediction import get_train_test_data
 
 # def evaluate_classification(y_true, y_pred):
@@ -145,6 +145,7 @@ def evaluate_mlp_models(x_train, x_test, y_train, y_test):
     return evaluate_classification(y_test, y_pred)
 
 def get_train_test_data_for_MLP(ticker):
+    print("get_train_test_data_for_MLP")
     # df_clf = Stocks.get_data_stock(ticker, MLP=True)
     #
     # if df_clf is None or df_clf.empty:
@@ -261,6 +262,8 @@ def find_best_model(ticker, f1_border=0.6):
 
 def get_or_create_model(ticker, f1_border=0.6):
     # Load metadata or create empty
+    MODEL_DIR = "saved_model"
+    MODEL_META_PATH = os.path.join(MODEL_DIR, "model_data.json")
     if os.path.exists(MODEL_META_PATH):
         model_data = pd.read_json(MODEL_META_PATH, orient="index")
     else:
@@ -294,42 +297,44 @@ def get_or_create_model(ticker, f1_border=0.6):
 
 
 
-# Main execution
-if __name__ == "__main__":
-    # Load stock list
-
-    df_stocks = pd.read_json('Stocks_name.json')
-
-    # Pick random ticker
-    ticker = df_stocks["symbol"].sample().iloc[0]
-
-    # X_train, X_test, Y_train, Y_test = get_train_test_data_for_MLP(ticker)
-    #
-    # results = evaluate_mlp_models(X_train, X_test, Y_train, Y_test)
-    #
-    # print("\nFinal Evaluation Metrics:")
-    # for metric, value in results.items():
-    #     print(f"{metric}: {value:.4f}")
-
-    json_path = "saved_model/model_data.json"
-
-
-
-    sc , mod_sc = find_best_model(ticker)
-    # Save model
-    model_filename = f"model_for{ticker}.keras"
-    mod_sc.save(os.path.join("saved_model", model_filename))
-
-    # Create or load existing model metadata
-    if os.path.exists(json_path):
-        model_data = pd.read_json(json_path, orient="index")
-    else:
-        model_data = pd.DataFrame(columns=["filename", "date", "f1_score"])
-
-    # Update or insert new model record
-    model_data.loc[ticker] = [model_filename, datetime.today().isoformat(), sc]
-
-    # Save updated metadata
-    model_data.to_json(json_path, orient="index", date_format="iso")
-
-    print(sc)
+# # Main execution
+# if __name__ == "__main__":
+#     # Load stock list
+#
+#     df_stocks = pd.read_json('Stocks_name.json')
+#
+#
+#     # Pick random ticker
+#     ticker = df_stocks["symbol"].sample().iloc[0]
+#     get_or_create_model(ticker)
+#
+#     # X_train, X_test, Y_train, Y_test = get_train_test_data_for_MLP(ticker)
+#     #
+#     # results = evaluate_mlp_models(X_train, X_test, Y_train, Y_test)
+#     #
+#     # print("\nFinal Evaluation Metrics:")
+#     # for metric, value in results.items():
+#     #     print(f"{metric}: {value:.4f}")
+#
+#     # json_path = "saved_model/model_data.json"
+#     #
+#     #
+#     #
+#     # sc , mod_sc = find_best_model(ticker)
+#     # # Save model
+#     # model_filename = f"model_for{ticker}.keras"
+#     # mod_sc.save(os.path.join("saved_model", model_filename))
+#     #
+#     # # # Create or load existing model metadata
+#     # # if os.path.exists(json_path):
+#     # #     model_data = pd.read_json(json_path, orient="index")
+#     # # else:
+#     # #     model_data = pd.DataFrame(columns=["filename", "date", "f1_score"])
+#     # #
+#     # # # Update or insert new model record
+#     # # model_data.loc[ticker] = [model_filename, datetime.today().isoformat(), sc]
+#     # #
+#     # # # Save updated metadata
+#     # # model_data.to_json(json_path, orient="index", date_format="iso")
+#     #
+#     # print(sc)
