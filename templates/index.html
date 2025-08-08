@@ -174,29 +174,50 @@
     <h2 id="result-title" style="display:none;">Prediction Result:</h2>
     <pre id="result-output"></pre>
 
+
+<!--    <script>-->
+<!--        document.getElementById("predict-form").addEventListener("submit", async function(event) {-->
+<!--            event.preventDefault(); // prevent page reload-->
+
+<!--            const formData = new FormData(this);-->
+<!--            const response = await fetch("/api/predict", {-->
+<!--                method: "POST",-->
+<!--                body: formData-->
+<!--            });-->
+
+<!--            const data = await response.json();-->
+
+<!--            const title = document.getElementById("result-title");-->
+<!--            const output = document.getElementById("result-output");-->
+
+<!--            title.style.display = "block";-->
+
+<!--            if (data.success) {-->
+<!--                output.textContent = data.message;-->
+<!--            } else {-->
+<!--                output.textContent = "Error: " + data.message;-->
+<!--            }-->
+<!--        });-->
+<!--    </script>-->
     <script>
-        document.getElementById("predict-form").addEventListener("submit", async function(event) {
-            event.preventDefault(); // prevent page reload
+    document.getElementById("predict-form").addEventListener("submit", async function(event) {
+        event.preventDefault(); // prevent page reload
 
-            const formData = new FormData(this);
-            const response = await fetch("/api/predict", {
-                method: "POST",
-                body: formData
-            });
-
-            const data = await response.json();
-
-            const title = document.getElementById("result-title");
-            const output = document.getElementById("result-output");
-
-            title.style.display = "block";
-
-            if (data.success) {
-                output.textContent = data.message;
-            } else {
-                output.textContent = "Error: " + data.message;
-            }
+        const formData = new FormData(this);
+        const response = await fetch("/api/predict", {
+            method: "POST",
+            body: formData
         });
+
+        const data = await response.json();
+
+        const title = document.getElementById("result-title");
+        const output = document.getElementById("result-output");
+
+        title.style.display = "block";
+
+        output.textContent = data.message;
+    });
     </script>
 </body>
 </html>

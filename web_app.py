@@ -35,21 +35,21 @@ def show_form(request: Request):
 #             "result": "Please select another stock."
 #         })
 
-from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse
-
-@app.post("/api/predict")
-def api_predict(ticker: str = Form(...)):
-    try:
-        X_train, X_test, Y_train, Y_test = get_train_test_data(ticker)
-        result = evaluate_classification_models(X_train, X_test, Y_train, Y_test, ticker)
-
-        if result:
-            output_t=f"Stock {ticker} will increase tomorrow"
-        else:
-            output_t = f"Stock {ticker} will not increase tomorrow"
-
-        return JSONResponse(content={"success": True, "message": output_t})
-
-    except Exception as e:
-        return JSONResponse(content={"success": False, "message": "Try another stock"})
+# from fastapi.encoders import jsonable_encoder
+# from fastapi.responses import JSONResponse
+#
+# @app.post("/api/predict")
+# def api_predict(ticker: str = Form(...)):
+#     try:
+#         X_train, X_test, Y_train, Y_test = get_train_test_data(ticker)
+#         result = evaluate_classification_models(X_train, X_test, Y_train, Y_test, ticker)
+#
+#         if result:
+#             output_t=f"Stock {ticker} will increase tomorrow"
+#         else:
+#             output_t = f"Stock {ticker} will not increase tomorrow"
+#
+#         return JSONResponse(content={"success": True, "message": output_t})
+#
+#     except Exception as e:
+#         return JSONResponse(content={"success": False, "message": "Try another stock"})

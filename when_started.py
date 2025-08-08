@@ -73,6 +73,6 @@ def download_and_save_indexes_to_json(json_path="index_data.json",days_index=365
     print(f"Index data saved to {json_path}")
     return merged_df
 
-get_stocks_name()
-download_and_save_indexes_to_json()
+# get_stocks_name()
+# download_and_save_indexes_to_json()
 

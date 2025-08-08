@@ -262,8 +262,12 @@ def find_best_model(ticker, f1_border=0.6):
 
 def get_or_create_model(ticker, f1_border=0.6):
     # Load metadata or create empty
-    MODEL_DIR = "saved_model"
+    # MODEL_DIR = "saved_model"
+    # MODEL_META_PATH = os.path.join(MODEL_DIR, "model_data.json")
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    MODEL_DIR = os.path.join(BASE_DIR, "saved_model")
     MODEL_META_PATH = os.path.join(MODEL_DIR, "model_data.json")
+
     if os.path.exists(MODEL_META_PATH):
         model_data = pd.read_json(MODEL_META_PATH, orient="index")
     else:
@@ -297,7 +301,7 @@ def get_or_create_model(ticker, f1_border=0.6):
 
 
 
-# # Main execution
+# Main execution
 # if __name__ == "__main__":
 #     # Load stock list
 #
