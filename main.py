@@ -27,7 +27,7 @@ def show_form(request: Request):
     return templates.TemplateResponse("index.html", {"request": request, "tickers": tickers})
 
 
-@app.post("api/predict")
+@app.post("/api/predict")
 def api_predict(ticker: str = Form(...)):
     try:
         print(f"API called with ticker: {ticker}")
@@ -41,7 +41,11 @@ def api_predict(ticker: str = Form(...)):
 
         # Get input data
         data_from_yesterday = get_stock_from_yesterday(ticker)
-        if data_from_yesterday is None or data_from_yesterday.empty:
+        if data_from_yesterday is None or (
+                hasattr(data_from_yesterday, "empty") and data_from_yesterday.empty
+        ) or (
+                hasattr(data_from_yesterday, "size") and data_from_yesterday.size == 0
+        ):
             return JSONResponse(
                 content={"success": False, "message": f"No recent stock data for {ticker}."}
             )
