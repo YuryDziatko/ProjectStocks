@@ -199,25 +199,52 @@
 <!--            }-->
 <!--        });-->
 <!--    </script>-->
-    <script>
-    document.getElementById("predict-form").addEventListener("submit", async function(event) {
-        event.preventDefault(); // prevent page reload
+<!--    <script>-->
+<!--    document.getElementById("predict-form").addEventListener("submit", async function(event) {-->
+<!--        event.preventDefault(); // prevent page reload-->
 
-        const formData = new FormData(this);
+<!--        const formData = new FormData(this);-->
+<!--        const response = await fetch("/api/predict", {-->
+<!--            method: "POST",-->
+<!--            body: formData-->
+<!--        });-->
+
+<!--        const data = await response.json();-->
+
+<!--        const title = document.getElementById("result-title");-->
+<!--        const output = document.getElementById("result-output");-->
+
+<!--        title.style.display = "block";-->
+
+<!--        output.textContent = data.message;-->
+<!--    });-->
+<!--    </script>-->
+<script>
+document.getElementById("predict-form").addEventListener("submit", async function(event) {
+    event.preventDefault(); // prevent page reload
+
+    const title = document.getElementById("result-title");
+    const output = document.getElementById("result-output");
+
+    // Show loader message while processing
+    title.style.display = "block";
+    output.textContent = "Prediction in progress... ⏳";
+
+    const formData = new FormData(this);
+    try {
         const response = await fetch("/api/predict", {
             method: "POST",
             body: formData
         });
 
         const data = await response.json();
-
-        const title = document.getElementById("result-title");
-        const output = document.getElementById("result-output");
-
-        title.style.display = "block";
-
         output.textContent = data.message;
-    });
-    </script>
+
+    } catch (error) {
+        output.textContent = "Error during prediction 😞";
+        console.error(error);
+    }
+});
+</script>
 </body>
 </html>
