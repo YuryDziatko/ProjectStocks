@@ -4,7 +4,7 @@ import random
 
 import numpy as np
 import pandas as pd
-import tensorflow as tf
+# import tensorflow as tf
 from keras import layers, models, Sequential
 from keras.metrics import F1Score, Accuracy, Precision, Recall
 from keras.src.saving import load_model
