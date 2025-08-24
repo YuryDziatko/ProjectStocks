@@ -5,7 +5,7 @@ import random
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from keras import layers, models
+from keras import layers, models, Sequential
 from keras.metrics import F1Score, Accuracy, Precision, Recall
 from keras.src.saving import load_model
 from sklearn.impute import SimpleImputer
@@ -225,6 +225,8 @@ def find_best_model(ticker, f1_border=0.6):
         print(f"Data error for {ticker}: {e}")
         return 0, None
     f1 = 0
+    f1_best = -1
+    best_model = None
     num_classes = len(np.unique(y_train))
     try_counter=0
     while f1<f1_border and try_counter<5:
@@ -255,8 +257,12 @@ def find_best_model(ticker, f1_border=0.6):
         average_type = 'binary' if num_classes == 2 else 'macro'
 
         f1 = f1_score(y_test, y_pred_labels, average=average_type)
+        if f1 > f1_best:
+            f1_best = f1
+            best_model = model
+
         print(f"Score {f1}  model n:{try_counter}")
-    return f1 , model
+    return f1 , best_model
 
 
 

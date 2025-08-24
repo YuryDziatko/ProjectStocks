@@ -27,7 +27,7 @@ def show_form(request: Request):
     return templates.TemplateResponse("index.html", {"request": request, "tickers": tickers})
 
 
-@app.post("/api/predict")
+@app.post("api/predict")
 def api_predict(ticker: str = Form(...)):
     try:
         print(f"API called with ticker: {ticker}")
