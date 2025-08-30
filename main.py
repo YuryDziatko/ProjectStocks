@@ -1,11 +1,14 @@
 import os
 import pandas as pd
+import asyncio
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
+from datetime import datetime, timedelta
 
 from MLpPrediction import get_or_create_model
 from Stocks import get_stock_from_yesterday
+from SaveModelsWhenSleep import build_model_mlp
 
 # Define absolute path base
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -15,9 +18,31 @@ STOCKS_PATH = os.path.join(BASE_DIR, "Stocks_name.json")
 app = FastAPI()
 templates = Jinja2Templates(directory=TEMPLATE_DIR)
 
+# Track last activity
+last_activity = datetime.utcnow()
+
+# Background task for idle retraining
+async def idle_checker():
+    global last_activity
+    while True:
+        await asyncio.sleep(60)  # check every 60 seconds
+        if datetime.utcnow() - last_activity > timedelta(minutes=5):
+            print("Idle for 5 minutes, starting model retraining...")
+            try:
+                build_model_mlp()
+            except Exception as e:
+                print(f"Error during idle retraining: {e}")
+            # reset timer so it won’t run again immediately
+            last_activity = datetime.utcnow()
+
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(idle_checker())
 
 @app.get("/", response_class=HTMLResponse)
 def show_form(request: Request):
+    global last_activity
+    last_activity = datetime.utcnow()  # update on each request
     try:
         df_stocks = pd.read_json(STOCKS_PATH)
         tickers = df_stocks["symbol"].tolist()
@@ -29,6 +54,8 @@ def show_form(request: Request):
 
 @app.post("/api/predict")
 def api_predict(ticker: str = Form(...)):
+    global last_activity
+    last_activity = datetime.utcnow()  # update on each API call
     try:
         print(f"API called with ticker: {ticker}")
 
