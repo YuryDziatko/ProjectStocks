@@ -17,67 +17,6 @@ from sklearn.preprocessing import StandardScaler
 
 import Stocks
 
-# MODEL_DIR = "saved_model"
-# MODEL_META_PATH = os.path.join(MODEL_DIR, "model_data.json")
-from ModelPrediction import get_train_test_data
-
-# def evaluate_classification(y_true, y_pred):
-#
-#
-#     results = {
-#         "Accuracy":Accuracy(y_true, y_pred),
-#         "Precision":Precision(y_true, y_pred),
-#         "Recall": Recall(y_true, y_pred),
-#         "F1-score": F1Score(y_true, y_pred)
-#     }
-#     return results
-#
-# def evaluate_mlp_models(x_train, x_test, y_train, y_test):
-#     model_mlp = models.Sequential([
-#         layers.Input(shape=x_train[0].shape),
-#         layers.Dense(100, activation="relu"),
-#         layers.Dense(len(np.unique(y_train)), activation="softmax")
-#     ])
-#
-#     model_mlp.summary()
-#     model_mlp.compile(
-#         optimizer="adam",
-#         loss="sparse_categorical_crossentropy",
-#         metrics=["arruracy"])
-#
-#     model_mlp.fit(x_train, y_train, epochs=10, batch_size=100)
-#     y_pred_model = model_mlp.predict(x_test)
-#     results_mlp = evaluate_classification(y_test, y_pred_model)
-#     return results_mlp
-#
-#
-#
-#
-# X_train, X_test, Y_train, Y_test = get_train_test_data()
-# results = evaluate_mlp_models(X_train, X_test, Y_train, Y_test)
-# print(results)
-
-
-# def evaluate_classification(y_true, y_pred):
-#     # Convert probabilities to class predictions
-#     y_pred_labels = np.argmax(y_pred, axis=1)
-#
-#     # Handle binary vs multi-class classification
-#     num_classes = len(np.unique(y_true))
-#     average_type = 'binary' if num_classes == 2 else 'macro'
-#
-#     # Initialize metrics
-#     accuracy = Accuracy()(y_true, y_pred_labels)
-#     precision = Precision(average=average_type)(y_true, y_pred_labels)
-#     recall = Recall(average=average_type)(y_true, y_pred_labels)
-#     f1 = F1Score(average=average_type, name='f1_score')(y_true, y_pred_labels)
-#
-#     return {
-#         "Accuracy": accuracy.numpy(),
-#         "Precision": precision.numpy(),
-#         "Recall": recall.numpy(),
-#         "F1-score": f1.numpy()
-#     }
 def evaluate_classification(y_true, y_pred):
     # Convert probabilities to class predictions
     y_pred_labels = np.argmax(y_pred, axis=1)
@@ -116,14 +55,7 @@ def evaluate_mlp_models(x_train, x_test, y_train, y_test):
     num_classes = len(np.unique(y_train))
     model = create_model_mlp(x_train.shape[1],32, 16, num_classes)
 
-    # model = models.Sequential([
-    #     layers.Input(shape=(x_train.shape[1],)),
-    #     layers.Dense(256, activation="relu"),
-    #     layers.Dropout(0.3),
-    #     layers.Dense(128, activation="relu"),
-    #     layers.Dropout(0.2),
-    #     layers.Dense(num_classes, activation="softmax")
-    # ])
+
 
     model.compile(
         optimizer="adam",
@@ -131,7 +63,7 @@ def evaluate_mlp_models(x_train, x_test, y_train, y_test):
         metrics=["accuracy"]
     )
 
-    print(model.summary())
+    # print(model.summary())
 
     history = model.fit(
         x_train, y_train,
@@ -145,51 +77,13 @@ def evaluate_mlp_models(x_train, x_test, y_train, y_test):
     return evaluate_classification(y_test, y_pred)
 
 def get_train_test_data_for_MLP(ticker):
-    print("get_train_test_data_for_MLP")
-    # df_clf = Stocks.get_data_stock(ticker, MLP=True)
-    #
-    # if df_clf is None or df_clf.empty:
-    #     raise ValueError(f"No data returned for ticker {ticker}")
-    #
-    # df_clf = df_clf.iloc[1:]
-    #
-    # if df_clf.isnull().all().any():
-    #     raise ValueError(f"All columns contain NaNs for ticker {ticker}")
-    #
-    # imputer = SimpleImputer(strategy='mean')
-    # X_clf = pd.DataFrame(imputer.fit_transform(df_clf), columns=df_clf.columns)
-    #
-    # y_clf = Stocks.create_data_output(X_clf)
-    #
-    # if len(X_clf) != len(y_clf):
-    #     raise ValueError("Feature and target lengths do not match")
-    #
-    # # Remove rows with NaNs in target
-    # valid_mask = ~y_clf.isna()
-    # X_clf = X_clf[valid_mask]
-    # y_clf = y_clf[valid_mask]
-    #
-    # if len(np.unique(y_clf)) < 2:
-    #     raise ValueError(f"Only one class found in target for {ticker}. Classification requires at least two classes.")
-    #
-    # scaler = StandardScaler()
-    # X_clf_scaled = scaler.fit_transform(X_clf)
-    #
-    # X_train_clf, X_test_clf, y_train_clf, y_test_clf = train_test_split(
-    #     X_clf_scaled, y_clf, test_size=0.2, random_state=42
-    # )
-    #
-    # print("Classification data prepared. Shape:", X_train_clf.shape)
-    # return X_train_clf, X_test_clf, y_train_clf, y_test_clf
 
 
     # Load dataset
     df_clf = Stocks.get_data_stock(ticker, MLP=True)
     df_clf=df_clf.iloc[1:]
 
-    # Check for missing values
-    # print("Missing values per column:")
-    # print(df_clf.isnull().sum())
+
 
     # Impute numerical features if needed
     imputer = SimpleImputer(strategy='mean')
@@ -199,12 +93,7 @@ def get_train_test_data_for_MLP(ticker):
     # Split features and target
 
     y_clf = Stocks.create_data_output(X_clf)
-    # y_clf = y_clf.iloc[1:]
 
-    # # Drop rows where y_clf is NaN (due to shift)
-    # mask = ~y_clf.isna()
-    # X_clf = X_clf[mask]
-    # y_clf = y_clf[mask]
 
     # Standardize the features
     scaler = StandardScaler()
@@ -214,7 +103,7 @@ def get_train_test_data_for_MLP(ticker):
     X_train_clf, X_test_clf, y_train_clf, y_test_clf = train_test_split(X_clf_scaled, y_clf, test_size=0.2,
                                                                             random_state=42)
 
-    print("Classification data prepared. Shape:", X_train_clf.shape)
+    # print("Classification data prepared. Shape:", X_train_clf.shape)
     return X_train_clf, X_test_clf, y_train_clf, y_test_clf
 
 
@@ -261,15 +150,13 @@ def find_best_model(ticker, f1_border=0.6):
             f1_best = f1
             best_model = model
 
-        print(f"Score {f1}  model n:{try_counter}")
+        # print(f"Score {f1}  model n:{try_counter}")
     return f1 , best_model
 
 
 
 def get_or_create_model(ticker, f1_border=0.6):
-    # Load metadata or create empty
-    # MODEL_DIR = "saved_model"
-    # MODEL_META_PATH = os.path.join(MODEL_DIR, "model_data.json")
+
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     MODEL_DIR = os.path.join(BASE_DIR, "saved_model")
     MODEL_META_PATH = os.path.join(MODEL_DIR, "model_data.json")
@@ -306,45 +193,3 @@ def get_or_create_model(ticker, f1_border=0.6):
         return None
 
 
-
-# Main execution
-# if __name__ == "__main__":
-#     # Load stock list
-#
-#     df_stocks = pd.read_json('Stocks_name.json')
-#
-#
-#     # Pick random ticker
-#     ticker = df_stocks["symbol"].sample().iloc[0]
-#     get_or_create_model(ticker)
-#
-#     # X_train, X_test, Y_train, Y_test = get_train_test_data_for_MLP(ticker)
-#     #
-#     # results = evaluate_mlp_models(X_train, X_test, Y_train, Y_test)
-#     #
-#     # print("\nFinal Evaluation Metrics:")
-#     # for metric, value in results.items():
-#     #     print(f"{metric}: {value:.4f}")
-#
-#     # json_path = "saved_model/model_data.json"
-#     #
-#     #
-#     #
-#     # sc , mod_sc = find_best_model(ticker)
-#     # # Save model
-#     # model_filename = f"model_for{ticker}.keras"
-#     # mod_sc.save(os.path.join("saved_model", model_filename))
-#     #
-#     # # # Create or load existing model metadata
-#     # # if os.path.exists(json_path):
-#     # #     model_data = pd.read_json(json_path, orient="index")
-#     # # else:
-#     # #     model_data = pd.DataFrame(columns=["filename", "date", "f1_score"])
-#     # #
-#     # # # Update or insert new model record
-#     # # model_data.loc[ticker] = [model_filename, datetime.today().isoformat(), sc]
-#     # #
-#     # # # Save updated metadata
-#     # # model_data.to_json(json_path, orient="index", date_format="iso")
-#     #
-#     # print(sc)

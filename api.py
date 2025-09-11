@@ -1,19 +1,3 @@
-# from fastapi import FastAPI
-# from stock_logic import get_prediction_for_random_stock
-#
-# app = FastAPI()
-#
-# @app.get("/")
-# def root():
-#     return {"message": "Welcome to the Stock Predictor API!"}
-#
-# @app.get("/predict")
-# def predict_stock():
-#     try:
-#         prediction = get_prediction_for_random_stock()
-#         return prediction
-#     except ValueError:
-#         return {"error": "Prediction failed, try another stock."}
 
 import os
 import pandas as pd
@@ -74,47 +58,6 @@ def predict_stock(ticker: str = Form(...)):
 
     output_msg = f"Stock {ticker} will {'increase 📈' if result == 1 else 'not increase 📉'} tomorrow"
     return JSONResponse(content={"success": True, "message": output_msg})
-
-    # except Exception as e:
-    # print(f"Prediction error: {e}")
-    # return JSONResponse(
-    #     content={"success": False, "message": f"Error during prediction: {str(e)}"}
-    # )
-
-
-# @app.post("/api/predict")
-# def api_predict(ticker: str = Form(...)):
-#     try:
-#
-#
-#         print(f"API called with ticker: {ticker}")
-#
-#         model = get_or_create_model(ticker)
-#         if not model:
-#             print(f"Model not found or failed for {ticker}")
-#             return JSONResponse(
-#                 content={"success": False, "message": f"Model load/train failed for {ticker}."}
-#             )
-#
-#         # Get input data
-#         data_from_yesterday = get_stock_from_yesterday(ticker)
-#         if data_from_yesterday is None or data_from_yesterday.empty:
-#             return JSONResponse(
-#                 content={"success": False, "message": f"No recent stock data for {ticker}."}
-#             )
-#
-#         prediction = model.predict(data_from_yesterday)
-#         result = prediction[-1].argmax()
-#
-#         output_msg = f"Stock {ticker} will {'increase 📈' if result == 1 else 'not increase 📉'} tomorrow"
-#         return JSONResponse(content={"success": True, "message": output_msg})
-#
-#
-#     except Exception as e:
-#         print(f"Prediction error: {e}")
-#         return JSONResponse(
-#             content={"success": False, "message": f"Error during prediction: {str(e)}"}
-#         )
 
 
 # uvicorn api:app --reload
